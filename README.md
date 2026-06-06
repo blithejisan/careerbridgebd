@@ -70,7 +70,7 @@ careerbridge-bd/
 Full project documentation (requirement engineering, ER diagram,
 system architecture, wireframes, API design) is available here:
 
-👉 [View Documentation](./docs/CareerBridge-BD-Documentation.pdf)
+👉 [View Documentation](Documentation-CareerBridge-BD.pdf)
 
 ---
 
