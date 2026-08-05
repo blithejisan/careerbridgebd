@@ -1,24 +1,34 @@
 const jwt = require('jsonwebtoken');
 
+// Verify JWT token — সব protected route এ লাগবে
 const protect = (req, res, next) => {
   const authHeader = req.headers['authorization'];
 
-  // 1. Token আছে কিনা check
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ message: 'Access denied. No token provided.' });
   }
 
-  // 2. "Bearer <token>" থেকে শুধু token অংশ নাও
   const token = authHeader.split(' ')[1];
 
-  // 3. Token verify করো
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // { id, role, iat, exp }
+    req.user = decoded;
     next();
   } catch (err) {
     return res.status(401).json({ message: 'Invalid or expired token.' });
   }
 };
 
-module.exports = { protect };
+// Role check — specific role ছাড়া block করবে
+const authorizeRoles = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({
+        message: `Access denied. Only ${roles.join(' or ')} can perform this action.`
+      });
+    }
+    next();
+  };
+};
+
+module.exports = { protect, authorizeRoles };
