@@ -5,15 +5,15 @@ import Register from './pages/auth/Register';
 import Home from './pages/Home';
 import Jobs from './pages/Jobs';
 import JobDetail from './pages/JobDetail';
+import GraduateDashboard from './pages/dashboard/GraduateDashboard';
+import EmployerDashboard from './pages/dashboard/EmployerDashboard';
+import AdminDashboard from './pages/dashboard/AdminDashboard';
 
-// Protected Route — login ছাড়া ঢুকতে দেবে না
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
 
   if (loading) return (
-    <div style={{ textAlign: 'center', marginTop: '50px' }}>
-      Loading...
-    </div>
+    <div style={{ textAlign: 'center', marginTop: '50px' }}>Loading...</div>
   );
 
   if (!user) return <Navigate to="/login" />;
@@ -36,24 +36,32 @@ function App() {
         <Route path="/jobs" element={<Jobs />} />
         <Route path="/jobs/:id" element={<JobDetail />} />
 
-        {/* Protected routes — Week 7 e dashboard বানাবো */}
+        {/* Graduate Dashboard */}
         <Route
           path="/dashboard/graduate"
           element={
             <ProtectedRoute allowedRoles={['graduate']}>
-              <h1 style={{ textAlign: 'center', marginTop: '50px' }}>
-                Graduate Dashboard — Coming Week 7 🚀
-              </h1>
+              <GraduateDashboard />
             </ProtectedRoute>
           }
         />
+
+        {/* Employer Dashboard */}
         <Route
           path="/dashboard/employer"
           element={
             <ProtectedRoute allowedRoles={['employer']}>
-              <h1 style={{ textAlign: 'center', marginTop: '50px' }}>
-                Employer Dashboard — Coming Week 7 🚀
-              </h1>
+              <EmployerDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin Dashboard */}
+        <Route
+          path="/dashboard/admin"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminDashboard />
             </ProtectedRoute>
           }
         />

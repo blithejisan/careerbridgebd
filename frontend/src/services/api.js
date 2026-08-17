@@ -31,3 +31,6 @@ export const jobApplicants = (jobId) => API.get(`/applications/job/${jobId}`);
 export const updateAppStatus = (id, data) => API.patch(`/applications/${id}`, data);
 
 export default API;
+// Admin endpoints
+export const getAllUsers = () => API.get('/admin/users');
+export const verifyEmployer = (id) => API.patch(`/admin/employers/${id}/verify`);
