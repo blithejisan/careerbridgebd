@@ -1,3 +1,5 @@
+const pool = require('../config/db');
+const { sendStatusEmail } = require('../config/nodemailer');
 const {
   createApplication,
   getApplicationsByGraduate,
@@ -5,7 +7,6 @@ const {
   findApplication,
   updateApplicationStatus
 } = require('../models/applicationModel');
-
 const { getJobById } = require('../models/jobModel');
 
 // POST /api/applications — graduate only
@@ -17,18 +18,15 @@ const applyJob = async (req, res) => {
       return res.status(400).json({ message: 'Job ID is required.' });
     }
 
-    // Job exist করে কিনা check
     const job = await getJobById(jobId);
     if (!job) {
       return res.status(404).json({ message: 'Job not found.' });
     }
 
-    // Job active আছে কিনা check
     if (job.status !== 'active') {
       return res.status(400).json({ message: 'This job is no longer accepting applications.' });
     }
 
-    // Duplicate apply check
     const existing = await findApplication(req.user.id, jobId);
     if (existing) {
       return res.status(409).json({ message: 'You have already applied for this job.' });
@@ -100,6 +98,30 @@ const updateStatus = async (req, res) => {
 
     if (affected === 0) {
       return res.status(404).json({ message: 'Application not found or you are not authorized.' });
+    }
+
+    // Email notification
+    try {
+      const [rows] = await pool.query(
+        `SELECT u.name, u.email, j.title
+         FROM applications a
+         JOIN users u ON a.graduate_id = u.id
+         JOIN job_listings j ON a.job_id = j.id
+         WHERE a.id = ?`,
+        [req.params.id]
+      );
+
+      if (rows.length > 0) {
+        await sendStatusEmail({
+          toEmail: rows[0].email,
+          graduateName: rows[0].name,
+          jobTitle: rows[0].title,
+          status,
+        });
+        console.log(`✅ Email sent to ${rows[0].email}`);
+      }
+    } catch (emailErr) {
+      console.error('Email send failed:', emailErr.message);
     }
 
     return res.status(200).json({ message: `Application status updated to '${status}'.` });

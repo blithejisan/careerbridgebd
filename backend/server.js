@@ -10,19 +10,20 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Routes
 const authRoutes = require('./routes/authRoutes');
 const jobRoutes = require('./routes/jobRoutes');
 const applicationRoutes = require('./routes/applicationRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/admin', adminRoutes);
-
-
+app.use('/api/users', userRoutes);
 
 // Test route - confirms server + DB are alive
 app.get('/api/health', async (req, res) => {
