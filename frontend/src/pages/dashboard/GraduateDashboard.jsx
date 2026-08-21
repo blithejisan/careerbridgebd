@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
-import { myApplications } from '../../services/api';
+import { myApplications, uploadCV } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 
 const statusColors = {
@@ -15,6 +15,35 @@ const GraduateDashboard = () => {
   const { user } = useAuth();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [cvUploading, setCvUploading] = useState(false);
+  const [cvMessage, setCvMessage] = useState({ text: '', type: '' });
+
+  const handleCVUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      setCvMessage({ text: 'Only PDF files are allowed.', type: 'error' });
+      return;
+    }
+
+    setCvUploading(true);
+    setCvMessage({ text: '', type: '' });
+
+    try {
+      const formData = new FormData();
+      formData.append('cv', file);
+      await uploadCV(formData);
+      setCvMessage({ text: '✅ CV uploaded successfully!', type: 'success' });
+    } catch (err) {
+      setCvMessage({
+        text: err.response?.data?.message || 'Failed to upload CV.',
+        type: 'error'
+      });
+    } finally {
+      setCvUploading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchApplications = async () => {
@@ -52,10 +81,28 @@ const GraduateDashboard = () => {
               Track your job applications and find new opportunities.
             </p>
           </div>
-          <Link to="/jobs" style={styles.findJobsBtn}>
-            🔍 Find Jobs
-          </Link>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <Link to="/jobs" style={styles.findJobsBtn}>
+              🔍 Find Jobs
+            </Link>
+            <label style={styles.cvUploadBtn}>
+              {cvUploading ? 'Uploading...' : '📄 Upload CV'}
+              <input
+                type="file"
+                accept=".pdf"
+                onChange={handleCVUpload}
+                style={{ display: 'none' }}
+              />
+            </label>
+          </div>
         </div>
+
+        {/* CV Message */}
+        {cvMessage.text && (
+          <div style={cvMessage.type === 'success' ? styles.successMsg : styles.errorMsg}>
+            {cvMessage.text}
+          </div>
+        )}
 
         {/* Stats Cards */}
         <div style={styles.statsGrid}>
@@ -162,6 +209,31 @@ const styles = {
     textDecoration: 'none',
     fontWeight: '700',
     fontSize: '14px',
+  },
+  cvUploadBtn: {
+    backgroundColor: '#059669',
+    color: '#fff',
+    padding: '10px 22px',
+    borderRadius: '8px',
+    fontWeight: '700',
+    fontSize: '14px',
+    cursor: 'pointer',
+    border: 'none',
+  },
+  successMsg: {
+    backgroundColor: '#dcfce7',
+    color: '#16a34a',
+    padding: '12px 16px',
+    borderRadius: '8px',
+    marginBottom: '16px',
+    fontWeight: '600',
+  },
+  errorMsg: {
+    backgroundColor: '#fee2e2',
+    color: '#dc2626',
+    padding: '12px 16px',
+    borderRadius: '8px',
+    marginBottom: '16px',
   },
   statsGrid: {
     display: 'grid',

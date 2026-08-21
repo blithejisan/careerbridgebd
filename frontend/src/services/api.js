@@ -30,7 +30,13 @@ export const myApplications = () => API.get('/applications/mine');
 export const jobApplicants = (jobId) => API.get(`/applications/job/${jobId}`);
 export const updateAppStatus = (id, data) => API.patch(`/applications/${id}`, data);
 
-export default API;
 // Admin endpoints
 export const getAllUsers = () => API.get('/admin/users');
 export const verifyEmployer = (id) => API.patch(`/admin/employers/${id}/verify`);
+
+// CV Upload
+export const uploadCV = (formData) => API.post('/users/upload-cv', formData, {
+  headers: { 'Content-Type': 'multipart/form-data' }
+});
+
+export default API;
