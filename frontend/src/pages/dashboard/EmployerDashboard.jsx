@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../../components/Navbar';
-import { postJob, getAllJobs, jobApplicants, updateAppStatus, deleteJob } from '../../services/api';
+import { postJob, getAllJobs, jobApplicants, updateAppStatus, deleteJob, getPendingJobs } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 
 const EmployerDashboard = () => {
@@ -25,9 +25,15 @@ const EmployerDashboard = () => {
   const fetchMyJobs = async () => {
     setLoading(true);
     try {
-      const res = await getAllJobs({});
-      const myJobs = res.data.jobs.filter(j => j.employer_name === user.name);
-      setJobs(myJobs);
+      const [activeRes, pendingRes] = await Promise.all([
+        getAllJobs({}),
+        getPendingJobs()
+      ]);
+
+      const myActiveJobs = activeRes.data.jobs.filter(j => j.employer_name === user.name);
+      const myPendingJobs = pendingRes.data.jobs.filter(j => j.employer_name === user.name);
+
+      setJobs([...myPendingJobs, ...myActiveJobs]);
     } catch (err) {
       console.error('Failed to fetch jobs:', err);
     } finally {
@@ -44,7 +50,7 @@ const EmployerDashboard = () => {
     setMessage({ text: '', type: '' });
     try {
       await postJob(jobForm);
-      setMessage({ text: '✅ Job posted successfully!', type: 'success' });
+      setMessage({ text: '⏳ Job submitted! Waiting for Admin approval before it goes live.', type: 'success' });
       setShowForm(false);
       setJobForm({
         title: '', category: '', description: '',
@@ -209,6 +215,7 @@ const EmployerDashboard = () => {
                     <th style={styles.th}>Type</th>
                     <th style={styles.th}>Location</th>
                     <th style={styles.th}>Deadline</th>
+                    <th style={styles.th}>Status</th>
                     <th style={styles.th}>Actions</th>
                   </tr>
                 </thead>
@@ -220,6 +227,18 @@ const EmployerDashboard = () => {
                       <td style={styles.td}>{job.location}</td>
                       <td style={styles.td}>
                         {job.deadline ? new Date(job.deadline).toLocaleDateString() : 'N/A'}
+                      </td>
+                      <td style={styles.td}>
+                        <span style={{
+                          padding: '4px 10px',
+                          borderRadius: '20px',
+                          fontSize: '11px',
+                          fontWeight: '700',
+                          backgroundColor: job.status === 'active' ? '#dcfce7' : job.status === 'pending_approval' ? '#fef9c3' : '#fee2e2',
+                          color: job.status === 'active' ? '#16a34a' : job.status === 'pending_approval' ? '#854d0e' : '#dc2626',
+                        }}>
+                          {job.status === 'pending_approval' ? '⏳ Pending' : job.status}
+                        </span>
                       </td>
                       <td style={styles.td}>
                         <div style={{ display: 'flex', gap: '8px' }}>

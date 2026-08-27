@@ -33,6 +33,10 @@ export const updateAppStatus = (id, data) => API.patch(`/applications/${id}`, da
 // Admin endpoints
 export const getAllUsers = () => API.get('/admin/users');
 export const verifyEmployer = (id) => API.patch(`/admin/employers/${id}/verify`);
+// Admin job approval
+export const getPendingJobs = () => API.get('/admin/jobs/pending');
+export const approveJob = (id) => API.patch(`/admin/jobs/${id}/approve`);
+export const rejectJob = (id) => API.patch(`/admin/jobs/${id}/reject`);
 
 // CV Upload
 export const uploadCV = (formData) => API.post('/users/upload-cv', formData, {
